@@ -5,6 +5,7 @@ const { registerSchema, loginSchema } = require("../validations/authValidation")
 
 const register = async (req, res, next) => {
   try {
+    console.log("Request body:", req.body);
     const { error } = registerSchema.validate(req.body);
     if (error) {
       return res.status(400).json({

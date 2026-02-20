@@ -23,7 +23,7 @@ How to run this project
 
 3. Open Terminal 2 - Seed the database
 
-   cd backend/src
+   cd backend
    npm run seed
 
    This creates test users and sample tickets
@@ -44,7 +44,12 @@ Customer - customer@test.com / 123456
 
 Running the tests
 
+Backend tests:
 cd backend
+npm test
+
+Frontend tests:
+cd frontend
 npm test
 
 API docs

@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import TicketList from "./pages/TicketList";
 import TicketDetail from "./pages/TicketDetail";
 import CreateTicket from "./pages/CreateTicket";
@@ -14,6 +15,7 @@ function App() {
         <Navbar />
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route
             path="/"
             element={

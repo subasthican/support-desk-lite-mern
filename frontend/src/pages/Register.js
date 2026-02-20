@@ -1,27 +1,39 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
 
-const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const Register = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "customer"
+  });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
 
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   const validate = () => {
     const newErrors = {};
-    if (!email) {
+    if (!formData.name || formData.name.length < 2) {
+      newErrors.name = "Name must be at least 2 characters";
+    }
+    if (!formData.email) {
       newErrors.email = "Email is required";
     }
-    if (!password) {
-      newErrors.password = "Password is required";
+    if (!formData.password || formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
     }
     return newErrors;
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -38,15 +50,13 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await api.post("/auth/login", { email, password });
-      const token = res.data.data.accessToken;
-
-      const payload = JSON.parse(atob(token.split(".")[1]));
-
-      login({ name: payload.name || email, role: payload.role }, token);
-      navigate("/");
+      const res = await api.post("/auth/register", formData);
+      if (res.data.success) {
+        alert("Registration successful! Please login.");
+        navigate("/login");
+      }
     } catch (err) {
-      setServerError("Invalid email or password");
+      setServerError(err.response?.data?.error || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -56,7 +66,7 @@ const Login = () => {
     <div style={styles.container}>
       <div style={styles.box}>
         <h2 style={styles.title}>Support Desk Lite</h2>
-        <p style={styles.subtitle}>Login to your account</p>
+        <p style={styles.subtitle}>Create your account</p>
 
         {serverError && (
           <p style={styles.serverError}>{serverError}</p>
@@ -64,11 +74,27 @@ const Login = () => {
 
         <form onSubmit={handleSubmit}>
           <div style={styles.field}>
-            <label style={styles.label}>Email</label>
+            <label style={styles.label}>Full Name</label>
             <input
               type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              style={styles.input}
+              placeholder="Enter your full name"
+            />
+            {errors.name && (
+              <p style={styles.error}>{errors.name}</p>
+            )}
+          </div>
+
+          <div style={styles.field}>
+            <label style={styles.label}>Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               style={styles.input}
               placeholder="Enter your email"
             />
@@ -81,14 +107,29 @@ const Login = () => {
             <label style={styles.label}>Password</label>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
               style={styles.input}
-              placeholder="Enter your password"
+              placeholder="Minimum 6 characters"
             />
             {errors.password && (
               <p style={styles.error}>{errors.password}</p>
             )}
+          </div>
+
+          <div style={styles.field}>
+            <label style={styles.label}>Account Type</label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              style={styles.select}
+            >
+              <option value="customer">Customer</option>
+              <option value="agent">Agent</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
 
           <button
@@ -96,14 +137,14 @@ const Login = () => {
             style={styles.button}
             disabled={loading}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
 
         <p style={styles.link}>
-          Don't have an account?{" "}
-          <Link to="/register" style={styles.linkText}>
-            Register here
+          Already have an account?{" "}
+          <Link to="/login" style={styles.linkText}>
+            Login here
           </Link>
         </p>
       </div>
@@ -150,6 +191,13 @@ const styles = {
     border: "1px solid gray",
     boxSizing: "border-box"
   },
+  select: {
+    width: "100%",
+    padding: "8px",
+    borderRadius: "4px",
+    border: "1px solid gray",
+    boxSizing: "border-box"
+  },
   error: {
     color: "red",
     fontSize: "12px",
@@ -181,4 +229,4 @@ const styles = {
   }
 };
 
-export default Login;
+export default Register;

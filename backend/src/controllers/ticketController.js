@@ -34,20 +34,75 @@ const createTicket = async (req, res, next) => {
   }
 };
 
-// get all tickets
+// get all tickets with pagination, filter, search
 const getTickets = async (req, res, next) => {
   try {
-    const filter = {};
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      priority,
+      tag,
+      search,
+      from,
+      to
+    } = req.query;
 
+    const parsedLimit = Math.min(parseInt(limit), 50);
+    const parsedPage = parseInt(page);
+
+    const query = {};
+
+    // Role-based filtering
     if (req.user.role === "customer") {
-      filter.createdBy = req.user._id;
+      query.createdBy = req.user._id;
     }
 
-    const tickets = await Ticket.find(filter).sort({ createdAt: -1 });
+    // Status filter
+    if (status) {
+      query.status = status;
+    }
+
+    // Priority filter
+    if (priority) {
+      query.priority = priority;
+    }
+
+    // Tag filter
+    if (tag) {
+      query.tags = tag;
+    }
+
+    // Date range filter
+    if (from || to) {
+      query.createdAt = {};
+      if (from) query.createdAt.$gte = new Date(from);
+      if (to) query.createdAt.$lte = new Date(to);
+    }
+
+    // Text search
+    if (search) {
+      query.$text = { $search: search };
+    }
+
+    const tickets = await Ticket.find(query)
+      .populate("createdBy", "name email role")
+      .populate("assignedTo", "name email role")
+      .sort({ createdAt: -1 })
+      .skip((parsedPage - 1) * parsedLimit)
+      .limit(parsedLimit);
+
+    const total = await Ticket.countDocuments(query);
 
     return res.status(200).json({
       success: true,
-      data: tickets,
+      data: {
+        tickets,
+        page: parsedPage,
+        limit: parsedLimit,
+        total,
+        pages: Math.ceil(total / parsedLimit)
+      },
       error: null
     });
   } catch (err) {
@@ -55,7 +110,7 @@ const getTickets = async (req, res, next) => {
   }
 };
 
-// get ticket by iD
+// get ticket by id
 const getTicketById = async (req, res, next) => {
   try {
     const ticket = await Ticket.findById(req.params.id);
@@ -132,7 +187,7 @@ const changeTicketStatus = async (req, res, next) => {
   }
 };
 
-// assign Ticket
+// assign ticket
 const assignTicket = async (req, res, next) => {
   try {
     const { assignedTo } = req.body;

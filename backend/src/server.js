@@ -3,6 +3,7 @@ const connectDB = require("./config/db");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const mongoSanitize = require("express-mongo-sanitize");
+const rateLimit = require("express-rate-limit");
 const { errorHandler } = require("./middleware/errorMiddleware");
 
 const PORT = process.env.PORT || 5001;
@@ -11,6 +12,18 @@ mongoose.set("strictQuery", true);
 
 app.use(helmet());
 app.use(mongoSanitize());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: {
+    success: false,
+    data: null,
+    error: "Too many requests, please try again later."
+  }
+});
+
+app.use(limiter);
 
 connectDB();
 

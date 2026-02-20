@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 const helmet = require("helmet");
 const mongoSanitize = require("express-mongo-sanitize");
 const rateLimit = require("express-rate-limit");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./docs/swagger");
 const { errorHandler } = require("./middleware/errorMiddleware");
 
 const PORT = process.env.PORT || 5001;
@@ -24,6 +26,8 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 connectDB();
 

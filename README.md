@@ -45,7 +45,13 @@ How to run this project
    npm run seed
 
    This creates test users and sample tickets
-
+////
+PORT=5001
+MONGO_URI=mongodb://localhost:27017/support_desk_lite
+JWT_SECRET=supersecretkey
+JWT_EXPIRES_IN=7d
+NODE_ENV=development
+////
 4. Open Terminal 3 - Frontend
 
    cd frontend
